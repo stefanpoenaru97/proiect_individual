@@ -1,6 +1,8 @@
 package proiect_pi;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.sql.*;
 
 import java.awt.BorderLayout;
@@ -32,7 +34,7 @@ public class Login extends JFrame {
 	private JPasswordField password;
 	
 	private boolean isLogged = false;
-	private ArrayList<String> account = new ArrayList<String>();
+	private Map<String, String> account = new HashMap<String, String>();
 
 	/**
 	 * Launch the application.
@@ -89,36 +91,22 @@ public class Login extends JFrame {
 				}
 				
 				try {
-					Database db = new Database();
-					ResultSet res = db.getUser(user);
+					account = new Database().getUserByName(user);
 					
-					ResultSetMetaData rsmd = res.getMetaData();
-
-					int count = rsmd.getColumnCount();
-					
-					if (!res.isBeforeFirst() ) {    
+					if (account.isEmpty()) {    
 						JOptionPane.showMessageDialog(null, "Username is not registered.");
 						return;
 					} 
 				
-					while (res.next()) {
-						String db_user = res.getString("username");
-						String db_pass = res.getString("password");
+					String db_user = account.get("user_name");
+					String db_pass = account.get("user_password");
+					
+					if (Objects.equals(user, db_user) && Objects.equals(pass, db_pass)) {							
+						isLogged = true;
 						
-						if (Objects.equals(user, db_user) && Objects.equals(pass, db_pass)) {								
-							for(int i=1; i<=count; i++) {
-					        	Login.this.account.add(res.getString(i));
-					        }
-							
-							Login.this.isLogged = true;
-							
-							Login.this.dispose();
-							
-							Main frame = new Main();
-							frame.setVisible(true);
-						} else {
-							JOptionPane.showMessageDialog(null, "Wrong password!");
-						}
+						Login.this.dispose();
+					} else {
+						JOptionPane.showMessageDialog(null, "Wrong password!");
 					}
 				} catch (SQLException|ClassNotFoundException ex) {
 					ex.printStackTrace();
@@ -150,28 +138,19 @@ public class Login extends JFrame {
 		contentPane.add(register);
 	}
 	
-	private String getPassword() {
-        return new String(password.getPassword());
-	}
-	
 	private String getUsername() {
 		return new String(username.getText());
 	}
 	
+	private String getPassword() {
+		return new String(password.getPassword());
+	}
+	
 	public boolean isLogged() {
-		return this.isLogged;
+		return isLogged;
 	}
 	
-	public ArrayList<String> getAccount() {
-		return this.account;
-	}
-	
-	public void setIsLogged(boolean value) {
-		this.isLogged = value;
-	}
-	
-	public void setAccount(ArrayList<String> account) {
-		this.account = account;
-	}
-	
+	public Map<String, String> getAccount() {
+		return account;
+	}	
 }
